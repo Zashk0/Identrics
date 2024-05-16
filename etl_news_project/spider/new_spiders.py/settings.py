@@ -1,3 +1,5 @@
+# settings.py
+
 # Scrapy settings for news_spiders project
 BOT_NAME = 'news_spiders'
 
@@ -10,4 +12,9 @@ ROBOTSTXT_OBEY = True
 # Configure item pipelines
 ITEM_PIPELINES = {
     'news_spiders.pipelines.NewsSpidersPipeline': 300,
+}
+
+# Configure custom middlewares
+DOWNLOADER_MIDDLEWARES = {
+    'news_spiders.middlewares.SimpleLoggingMiddleware': 543,
 }
