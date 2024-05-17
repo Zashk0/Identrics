@@ -1,6 +1,9 @@
+import sys
+print(sys.path)  # Add this to see the current PYTHONPATH
+
 from sqlalchemy.orm import sessionmaker
-from models import Article, engine
-from etl.transform_data import clean_html, extract_entities  # Adjust the import as needed
+from models import Article, engine  # Adjusted import path to include project root
+from etl.transform_data import clean_html, extract_entities  # Adjust the import path
 import json
 
 class NewsSpidersPipeline:
