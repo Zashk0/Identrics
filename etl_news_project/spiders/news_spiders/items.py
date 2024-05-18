@@ -7,4 +7,5 @@ class ArticleItem(scrapy.Item):
     pub_datetime = scrapy.Field()
     author = scrapy.Field()
     images = scrapy.Field()
+    ner = scrapy.Field()  # Add the ner field
     comments = scrapy.Field()

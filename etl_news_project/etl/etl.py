@@ -1,36 +1,59 @@
 import json
-from sqlalchemy.orm import Session
-from models import Article, engine
-from etl.transform_data import transform_data  # Corrected import
+import sqlite3
+from transform_data import transform_data
+import os
 
-session = Session(bind=engine)
+def load_data(file_path):
+    if not os.path.exists(file_path):
+        print(f"File not found: {file_path}")
+        return []
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    return data
 
-def load_data(data):
+def save_to_db(data):
+    db_path = os.path.join(os.path.dirname(__file__), '..', 'spiders', 'articles.db')
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS articles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT,
+            body TEXT,
+            url TEXT UNIQUE,
+            pub_datetime TEXT,
+            author TEXT,
+            images TEXT,
+            ner TEXT,
+            comments INTEGER DEFAULT 0
+        )
+    ''')
+
     for item in data:
-        if not session.query(Article).filter_by(url=item['url']).first():
-            article = Article(
-                title=item['title'],
-                body=item['body'],
-                url=item['url'],
-                pub_datetime=item['pub_datetime'],
-                author=item['author'],
-                images=json.dumps(item['images']),
-                ner=json.dumps(item['ner']),
-                comments=item.get('comments', 0)
-            )
-            session.add(article)
-    session.commit()
+        print("Saving item to DB:", item)  # Debug print
+        cursor.execute('''
+            INSERT OR IGNORE INTO articles (title, body, url, pub_datetime, author, images, ner, comments)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (item['title'], item['body'], item['url'], item['pub_datetime'], item['author'], json.dumps(item['images']), json.dumps(item['ner']), item.get('comments', 0)))
 
-def etl_process():
-    # Load raw data from JSON files
-    with open('raw_data_restofworld.json') as f:
-        raw_data_restofworld = json.load(f)
-    with open('raw_data_capitalbrief.json') as f:
-        raw_data_capitalbrief = json.load(f)
-
-    raw_data = raw_data_restofworld + raw_data_capitalbrief
-    transformed_data = transform_data(raw_data)
-    load_data(transformed_data)
+    conn.commit()
+    conn.close()
 
 if __name__ == "__main__":
-    etl_process()
+    raw_data_restofworld_path = os.path.join(os.path.dirname(__file__), '..', 'spiders', 'raw_data_restofworld.json')
+    raw_data_capitalbrief_path = os.path.join(os.path.dirname(__file__), '..', 'spiders', 'raw_data_capitalbrief.json')
+
+    print(f"Loading data from {raw_data_restofworld_path}")  # Debug print
+    print(f"Loading data from {raw_data_capitalbrief_path}")  # Debug print
+
+    raw_data_restofworld = load_data(raw_data_restofworld_path)
+    raw_data_capitalbrief = load_data(raw_data_capitalbrief_path)
+
+    if raw_data_restofworld:
+        transformed_data_restofworld = transform_data(raw_data_restofworld)
+        save_to_db(transformed_data_restofworld)
+
+    if raw_data_capitalbrief:
+        transformed_data_capitalbrief = transform_data(raw_data_capitalbrief)
+        save_to_db(transformed_data_capitalbrief)
