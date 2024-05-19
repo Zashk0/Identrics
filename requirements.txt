@@ -5,3 +5,8 @@ sqlalchemy
 spacy
 pydantic
 jsonschema
+fastapi==0.75.2
+uvicorn==0.17.6
+sqlalchemy==1.4.22
+pydantic==1.8.2
+sqlite==0.0.0

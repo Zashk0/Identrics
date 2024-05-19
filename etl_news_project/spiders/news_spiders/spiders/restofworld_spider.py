@@ -9,7 +9,7 @@ from etl.transform_data import clean_html, extract_entities
 from datetime import datetime
 
 class RestOfWorldSpider(scrapy.Spider):
-    name = 'restofworld_spider'
+    name = 'rest_of_world_spider'
     start_urls = ['https://restofworld.org/series/the-rise-of-ai/']
     article_count = 0
     max_articles = 20
@@ -93,7 +93,10 @@ class RestOfWorldSpider(scrapy.Spider):
         self.logger.info(f"Scraped data: {item}")
 
         yield item
-
+        related_links = response.css('a.recirc-story__image-wrapper::attr(href)').getall()
+        self.logger.info(f"Found {len(related_links)} related article links at the bottom")
+        for link in related_links:
+            yield response.follow(link, self.parse_article)
         self.article_count += 1
 
     def scroll_to_load(self):

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
-from models import Article, engine
-from etl.transform_data import clean_html, extract_entities
+from models import Article, engine  # Adjusted import path
+from etl_news_project.etl.transform_data import clean_html, extract_entities  # Adjust the import path
 import json
 
 class NewsSpidersPipeline:
